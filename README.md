@@ -191,6 +191,12 @@ Coverage includes assertions, every invariant kind, first divergence, scoring, m
 
 ---
 
+## Credits
+
+The web UI was redesigned with **[unslop](https://github.com/heydamir/unslop)** by Damir Sokolovsky ([@heydamir](https://x.com/heydamir)), a Claude Code skill for turning AI-looking interfaces into designed ones. The skill is included unmodified in `.claude/skills/unslop/` under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license; see its [NOTICE](.claude/skills/unslop/NOTICE.md) and [LICENSE](.claude/skills/unslop/LICENSE).
+
+---
+
 ## Known limitations
 
 - **Queue**: runs execute on an in-process queue behind a `JobQueue` interface; a Redis/BullMQ implementation is the path to multiple workers.
