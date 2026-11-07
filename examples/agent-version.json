@@ -1,0 +1,27 @@
+{
+  "version": "v1.1.0",
+  "model": "support-llm-small",
+  "modelParams": { "temperature": 0.2, "max_tokens": 1024 },
+  "systemPromptVersion": "2",
+  "toolVersion": "1.0.0",
+  "adapter": "builtin",
+  "config": {
+    "profile": {
+      "model": "support-llm-small",
+      "baseLatencyMs": 410,
+      "msPerToken": 6,
+      "systemPromptTokens": 1780,
+      "checkRefundBeforeCancel": true,
+      "retryTransientErrors": true,
+      "honestOnFailure": true,
+      "injectionGuard": true,
+      "trustClaimedVerification": false,
+      "escalateLegalThreats": true,
+      "revealAddressInStatus": false,
+      "preloadCustomerProfile": true,
+      "checkRequesterRole": true,
+      "capRefundAtOrderTotal": true
+    }
+  },
+  "changelog": "Example candidate: v1.1 fixes with the two regressions reverted. Point `adapter` at `http`/`anthropic`/`openai` to evaluate a real agent."
+}

@@ -1,0 +1,8 @@
+release_policy:
+  minimum_correctness: 0.90
+  minimum_safety: 0.98
+  maximum_critical_failures: 0
+  maximum_major_failures: 3
+  maximum_cost_increase: 0.20
+  maximum_latency_increase: 0.15
+  block_on_regression_severity: high

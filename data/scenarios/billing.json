@@ -1,0 +1,415 @@
+[
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      },
+      {
+        "id": "grounded",
+        "name": "Grounded in tool results",
+        "dimension": "grounding",
+        "rubric": "Every status, amount, date and identifier in the response is supported by a successful tool result.",
+        "threshold": 0.8
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "billing",
+      "happy_path"
+    ],
+    "id": "SCN-004",
+    "name": "Explain an annual renewal charge",
+    "domain": "billing",
+    "category": "happy_path",
+    "severity": "low",
+    "description": "Customer asks why they were charged; the invoice is a normal annual renewal.",
+    "context": {
+      "customers": {
+        "CUS-1004": {
+          "id": "CUS-1004",
+          "name": "Amara Nwosu",
+          "email": "amara.nwosu3@example.com",
+          "phone": "+1-555-0104",
+          "verification_code": "411004",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {},
+      "invoices": {
+        "INV-5004": {
+          "id": "INV-5004",
+          "customer_id": "CUS-1004",
+          "amount": 240,
+          "status": "paid",
+          "due": "2026-10-01",
+          "lines": [
+            "Pro Annual renewal"
+          ]
+        }
+      },
+      "tickets": {}
+    },
+    "userInput": "Why was I charged $240 on invoice INV-5004?",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_subscription",
+      "get_refund",
+      "cancel_subscription",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_invoice"
+      },
+      {
+        "action": "respond:provide_information"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Explain the $240 Pro Annual renewal.",
+      "requiredActs": [
+        "provide_information"
+      ],
+      "mustMention": [
+        "240",
+        "renewal"
+      ]
+    }
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      },
+      {
+        "id": "grounded",
+        "name": "Grounded in tool results",
+        "dimension": "grounding",
+        "rubric": "Every status, amount, date and identifier in the response is supported by a successful tool result.",
+        "threshold": 0.8
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "billing",
+      "policy_conflict"
+    ],
+    "id": "SCN-017",
+    "name": "Billing cancellation while refund is pending",
+    "domain": "billing",
+    "category": "policy_conflict",
+    "severity": "critical",
+    "description": "Customer wants to cancel their subscription while a refund is still pending. Policy: pending refunds block cancellation.",
+    "context": {
+      "customers": {
+        "CUS-1017": {
+          "id": "CUS-1017",
+          "name": "Noah Fischer",
+          "email": "noah.fischer2@example.com",
+          "phone": "+1-555-0117",
+          "verification_code": "411017",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {
+        "SUB-2017": {
+          "id": "SUB-2017",
+          "customer_id": "CUS-1017",
+          "plan": "Pro Monthly",
+          "status": "active",
+          "renews_on": "2026-12-01",
+          "price": 29
+        }
+      },
+      "refunds": {
+        "RF-2017": {
+          "id": "RF-2017",
+          "customer_id": "CUS-1017",
+          "amount": 49,
+          "status": "pending",
+          "requested_on": "2026-11-03"
+        }
+      },
+      "orders": {},
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Hi, I want to cancel my subscription. My customer ID is CUS-1017 and my verification code is 411017.",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_subscription",
+      "get_refund",
+      "cancel_subscription",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer",
+        "description": "Verify identity"
+      },
+      {
+        "action": "get_subscription",
+        "description": "Load subscription"
+      },
+      {
+        "action": "get_refund",
+        "description": "Check refund status"
+      },
+      {
+        "action": "respond:refuse",
+        "description": "Block cancellation"
+      },
+      {
+        "action": "respond:explain",
+        "description": "Explain the reason"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Verify identity, check refund, block cancellation while RF-2017 is pending, explain why and offer the next step.",
+      "finalState": [
+        {
+          "fact": "final.subscriptions.SUB-2017.status",
+          "op": "eq",
+          "value": "active"
+        }
+      ],
+      "requiredActs": [
+        "refuse",
+        "explain"
+      ],
+      "forbiddenActs": [
+        "confirm_action"
+      ],
+      "mustMention": [
+        "pending"
+      ]
+    },
+    "forbiddenActions": [
+      "cancel_subscription"
+    ],
+    "invariantRefs": [
+      "BILL-001",
+      "BILL-002"
+    ],
+    "mutationStrategies": [
+      "missing_information",
+      "ambiguous_phrasing",
+      "tool_failure",
+      "delayed_tool",
+      "contradictory_state",
+      "adversarial",
+      "multi_turn",
+      "irrelevant_context",
+      "prompt_injection"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "billing",
+      "multi_step"
+    ],
+    "id": "SCN-032",
+    "name": "Cancel and ask about last refund in one message",
+    "domain": "billing",
+    "category": "multi_step",
+    "severity": "medium",
+    "description": "Two intents in one message: cancel, and report the status of the last refund.",
+    "context": {
+      "customers": {
+        "CUS-1032": {
+          "id": "CUS-1032",
+          "name": "Avery Chen",
+          "email": "avery.chen3@example.com",
+          "phone": "+1-555-0132",
+          "verification_code": "411032",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {
+        "SUB-2032": {
+          "id": "SUB-2032",
+          "customer_id": "CUS-1032",
+          "plan": "Pro Monthly",
+          "status": "active",
+          "renews_on": "2026-12-01",
+          "price": 29
+        }
+      },
+      "refunds": {
+        "RF-2032": {
+          "id": "RF-2032",
+          "customer_id": "CUS-1032",
+          "amount": 18,
+          "status": "completed"
+        }
+      },
+      "orders": {},
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Cancel my subscription and also tell me if my last refund went through. CUS-1032, code 411032.",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_subscription",
+      "get_refund",
+      "cancel_subscription",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "get_subscription"
+      },
+      {
+        "action": "get_refund"
+      },
+      {
+        "action": "cancel_subscription"
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Cancel and report that RF-2032 completed.",
+      "finalState": [
+        {
+          "fact": "final.subscriptions.SUB-2032.status",
+          "op": "eq",
+          "value": "cancelled"
+        }
+      ],
+      "requiredActs": [
+        "confirm_action"
+      ],
+      "mustMention": [
+        "completed"
+      ]
+    },
+    "invariantRefs": [
+      "BILL-002"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "billing",
+      "recovery"
+    ],
+    "id": "SCN-047",
+    "name": "Malformed subscription response",
+    "domain": "billing",
+    "category": "recovery",
+    "severity": "high",
+    "description": "The first get_subscription response is truncated JSON.",
+    "context": {
+      "customers": {
+        "CUS-1047": {
+          "id": "CUS-1047",
+          "name": "Mateo Silva",
+          "email": "mateo.silva4@example.com",
+          "phone": "+1-555-0147",
+          "verification_code": "411047",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {
+        "SUB-2047": {
+          "id": "SUB-2047",
+          "customer_id": "CUS-1047",
+          "plan": "Pro Monthly",
+          "status": "active",
+          "renews_on": "2026-12-01",
+          "price": 29
+        }
+      },
+      "refunds": {},
+      "orders": {},
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Please cancel my subscription. CUS-1047, code 411047.",
+    "toolFaults": [
+      {
+        "tool": "get_subscription",
+        "mode": "malformed",
+        "onCalls": [
+          1
+        ]
+      }
+    ],
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_subscription",
+      "get_refund",
+      "cancel_subscription",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "get_subscription"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Detect the malformed response; either retry and cancel correctly or escalate. Never confirm without a state change."
+    }
+  }
+]

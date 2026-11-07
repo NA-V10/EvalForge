@@ -1,0 +1,17 @@
+{
+  "name": "@rel/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "reliability": "./bin/reliability.mjs"
+  },
+  "dependencies": {
+    "@rel/core": "workspace:*",
+    "@rel/platform": "workspace:*",
+    "@rel/scenario-engine": "workspace:*",
+    "commander": "^15.0.0",
+    "tsx": "^4.23.15",
+    "yaml": "^2.9.1"
+  }
+}

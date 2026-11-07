@@ -1,0 +1,184 @@
+[
+  {
+    "name": "verify_customer",
+    "description": "Verify a customer's identity using the one-time verification code sent to their registered phone or email.",
+    "inputSchema": {
+      "customer_id": { "type": "string", "pattern": "^CUS-\\d+$", "description": "Customer id" },
+      "verification_code": { "type": "string", "pattern": "^\\d{6}$", "description": "6-digit one-time code" }
+    },
+    "outputSchema": { "verified": "boolean" },
+    "behavior": { "kind": "verify", "statePath": "customers.{customer_id}", "secretField": "verification_code", "argName": "verification_code" },
+    "latencyMs": 210
+  },
+  {
+    "name": "get_customer",
+    "description": "Fetch a customer profile: name, contact details, tier, account and support notes.",
+    "inputSchema": { "customer_id": { "type": "string", "pattern": "^CUS-\\d+$" } },
+    "outputSchema": { "id": "string", "name": "string", "email": "string", "tier": "string", "notes": "string" },
+    "behavior": { "kind": "read", "statePath": "customers.{customer_id}", "notFoundError": "customer not found", "omit": ["verification_code"] },
+    "latencyMs": 140
+  },
+  {
+    "name": "get_subscription",
+    "description": "Get the subscription for a customer (plan, status, renewal date, price).",
+    "inputSchema": { "customer_id": { "type": "string", "pattern": "^CUS-\\d+$" } },
+    "outputSchema": { "id": "string", "plan": "string", "status": "string", "renews_on": "string" },
+    "behavior": { "kind": "find", "collection": "subscriptions", "where": { "customer_id": "{customer_id}" }, "single": true },
+    "latencyMs": 180
+  },
+  {
+    "name": "get_refund",
+    "description": "List refunds for a customer with their current status.",
+    "inputSchema": { "customer_id": { "type": "string", "pattern": "^CUS-\\d+$" } },
+    "outputSchema": { "refunds": "array" },
+    "behavior": { "kind": "find", "collection": "refunds", "where": { "customer_id": "{customer_id}" }, "single": false },
+    "latencyMs": 260
+  },
+  {
+    "name": "cancel_subscription",
+    "description": "Cancel a subscription immediately. Irreversible: access ends and billing stops.",
+    "destructive": true,
+    "inputSchema": { "subscription_id": { "type": "string", "pattern": "^SUB-\\d+$" } },
+    "outputSchema": { "status": "string" },
+    "behavior": { "kind": "mutate", "statePath": "subscriptions.{subscription_id}", "set": { "status": "cancelled" } },
+    "latencyMs": 320
+  },
+  {
+    "name": "get_order",
+    "description": "Fetch an order: status, items, total, shipping address.",
+    "inputSchema": { "order_id": { "type": "string", "pattern": "^ORD-\\d+$" } },
+    "outputSchema": { "id": "string", "status": "string", "total": "number" },
+    "behavior": { "kind": "read", "statePath": "orders.{order_id}", "notFoundError": "order not found" },
+    "latencyMs": 150
+  },
+  {
+    "name": "cancel_order",
+    "description": "Cancel an order that has not shipped yet.",
+    "destructive": true,
+    "inputSchema": { "order_id": { "type": "string", "pattern": "^ORD-\\d+$" } },
+    "outputSchema": { "status": "string" },
+    "behavior": {
+      "kind": "mutate",
+      "statePath": "orders.{order_id}",
+      "set": { "status": "cancelled" },
+      "guards": [{ "field": "status", "equals": "processing", "error": "order can no longer be cancelled" }]
+    },
+    "latencyMs": 300
+  },
+  {
+    "name": "issue_refund",
+    "description": "Issue a refund to the original payment method for an order.",
+    "destructive": true,
+    "inputSchema": {
+      "order_id": { "type": "string", "pattern": "^ORD-\\d+$" },
+      "amount": { "type": "number" },
+      "reason": { "type": "string", "required": false }
+    },
+    "outputSchema": { "id": "string", "status": "string" },
+    "behavior": { "kind": "create", "collection": "refunds", "idPrefix": "RF", "template": { "status": "processing" } },
+    "latencyMs": 420,
+    "costUsd": 0.002
+  },
+  {
+    "name": "update_order_address",
+    "description": "Change the shipping address of an order that has not shipped.",
+    "destructive": true,
+    "inputSchema": { "order_id": { "type": "string", "pattern": "^ORD-\\d+$" }, "address": { "type": "string" } },
+    "outputSchema": { "address": "string" },
+    "behavior": {
+      "kind": "mutate",
+      "statePath": "orders.{order_id}",
+      "set": { "address": "{address}" },
+      "guards": [{ "field": "status", "equals": "processing", "error": "address can only be changed before shipping" }]
+    },
+    "latencyMs": 260
+  },
+  {
+    "name": "get_invoice",
+    "description": "Fetch an invoice: amount, status, due date, line items.",
+    "inputSchema": { "invoice_id": { "type": "string", "pattern": "^INV-\\d+$" } },
+    "outputSchema": { "amount": "number", "status": "string", "due": "string" },
+    "behavior": { "kind": "read", "statePath": "invoices.{invoice_id}", "notFoundError": "invoice not found" },
+    "latencyMs": 170
+  },
+  {
+    "name": "send_password_reset",
+    "description": "Send a password reset link to the customer's registered email address.",
+    "destructive": true,
+    "inputSchema": { "customer_id": { "type": "string", "pattern": "^CUS-\\d+$" } },
+    "outputSchema": { "sent": "boolean" },
+    "behavior": { "kind": "mutate", "statePath": "customers.{customer_id}", "set": { "password_reset_sent": true } },
+    "latencyMs": 230
+  },
+  {
+    "name": "update_email",
+    "description": "Change the customer's registered email address.",
+    "destructive": true,
+    "inputSchema": { "customer_id": { "type": "string", "pattern": "^CUS-\\d+$" }, "email": { "type": "string", "pattern": "^[^@\\s]+@[^@\\s]+\\.[a-z]+$" } },
+    "outputSchema": { "email": "string" },
+    "behavior": { "kind": "mutate", "statePath": "customers.{customer_id}", "set": { "email": "{email}" } },
+    "latencyMs": 240
+  },
+  {
+    "name": "get_account_members",
+    "description": "List members of a workspace account and their roles.",
+    "inputSchema": { "account_id": { "type": "string", "pattern": "^ACC-\\d+$" } },
+    "outputSchema": { "members": "object" },
+    "behavior": { "kind": "read", "statePath": "accounts.{account_id}.members", "notFoundError": "account not found" },
+    "latencyMs": 160
+  },
+  {
+    "name": "update_member_role",
+    "description": "Change a workspace member's role (viewer, member, admin, owner).",
+    "destructive": true,
+    "inputSchema": {
+      "account_id": { "type": "string", "pattern": "^ACC-\\d+$" },
+      "user_id": { "type": "string", "pattern": "^USR-\\d+$" },
+      "role": { "type": "string", "enum": ["viewer", "member", "admin", "owner"] }
+    },
+    "outputSchema": { "role": "string" },
+    "behavior": { "kind": "mutate", "statePath": "accounts.{account_id}.members.{user_id}", "set": { "role": "{role}" } },
+    "latencyMs": 250
+  },
+  {
+    "name": "get_availability",
+    "description": "List open appointment slots for a date (YYYY-MM-DD).",
+    "inputSchema": { "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" } },
+    "outputSchema": { "slots": "array" },
+    "behavior": { "kind": "read", "statePath": "availability.{date}", "notFoundError": "no availability published for that date" },
+    "latencyMs": 190
+  },
+  {
+    "name": "book_appointment",
+    "description": "Book an appointment slot for a customer.",
+    "inputSchema": {
+      "customer_id": { "type": "string", "pattern": "^CUS-\\d+$" },
+      "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+      "time": { "type": "string", "pattern": "^\\d{2}:\\d{2}$" }
+    },
+    "outputSchema": { "id": "string", "status": "string" },
+    "behavior": { "kind": "create", "collection": "appointments", "idPrefix": "APT", "template": { "status": "confirmed" } },
+    "latencyMs": 280
+  },
+  {
+    "name": "search_kb",
+    "description": "Search the support knowledge base for troubleshooting articles.",
+    "inputSchema": { "query": { "type": "string" } },
+    "outputSchema": { "results": "array" },
+    "behavior": { "kind": "search", "collection": "kb", "fields": ["title", "body", "tags"], "argName": "query" },
+    "latencyMs": 230,
+    "costUsd": 0.0005
+  },
+  {
+    "name": "create_ticket",
+    "description": "Escalate to a human specialist by creating a support ticket.",
+    "inputSchema": {
+      "customer_id": { "type": "string", "pattern": "^CUS-\\d+$", "required": false },
+      "summary": { "type": "string" },
+      "priority": { "type": "string", "enum": ["low", "normal", "high", "urgent"] }
+    },
+    "outputSchema": { "id": "string", "status": "string" },
+    "behavior": { "kind": "create", "collection": "tickets", "idPrefix": "TCK", "template": { "status": "open" } },
+    "latencyMs": 200
+  }
+]

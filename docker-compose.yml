@@ -1,0 +1,36 @@
+# Local development with real PostgreSQL. (Without Docker, the platform uses embedded PGlite automatically.)
+#
+#   docker compose up -d postgres
+#   DATABASE_URL=postgres://reliability:reliability@localhost:5432/reliability pnpm seed
+#   DATABASE_URL=postgres://reliability:reliability@localhost:5432/reliability pnpm dev
+#
+# Or run everything in containers:   docker compose up --build
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: reliability
+      POSTGRES_PASSWORD: reliability
+      POSTGRES_DB: reliability
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reliability"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://reliability:reliability@postgres:5432/reliability
+      NODE_ENV: production
+      # Required in production: encrypts stored provider secrets.
+      RELIABILITY_SECRET_KEY: ${RELIABILITY_SECRET_KEY:-change-me-in-production}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      PORT: "4000"
+    ports: ["4000:4000"]
+
+volumes:
+  pgdata:

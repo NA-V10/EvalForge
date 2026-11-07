@@ -1,0 +1,69 @@
+# Behavioral evaluation gate for agent changes.
+#
+# On every PR that touches the agent, register the change as a new agent version, run the
+# production regression suite against it, and fail the job if the release gate blocks.
+# Runs fully in-process against an ephemeral Postgres service — no ReliabilityOS server needed.
+# To evaluate against a shared deployment instead, set RELIABILITY_API_URL / RELIABILITY_API_KEY secrets.
+
+name: agent-evals
+
+on:
+  pull_request:
+    paths:
+      - "packages/agents/**"
+      - "data/scenarios/**"
+      - "data/invariants/**"
+      - "data/tools/**"
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: reliability
+          POSTGRES_PASSWORD: reliability
+          POSTGRES_DB: reliability
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U reliability" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://reliability:reliability@localhost:5432/reliability
+      RELIABILITY_SECRET_KEY: ${{ secrets.RELIABILITY_SECRET_KEY }}
+      # Optional: use an LLM judge for semantic criteria (deterministic heuristic judge otherwise).
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      NO_COLOR: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Validate scenarios
+        run: pnpm reliability scenario validate data/scenarios
+
+      - name: Seed baseline (catalog + previous production version)
+        run: pnpm seed --skip-runs && pnpm reliability eval run --agent customer-support-agent --version v1.0.0
+
+      - name: Register this change as a new agent version
+        run: |
+          pnpm reliability agent version-create \
+            --agent customer-support-agent \
+            --file examples/agent-version.json \
+            --version "v1.1.${{ github.run_number }}"
+
+      - name: Run Agent Evaluations
+        run: |
+          pnpm reliability eval run \
+            --agent customer-support-agent \
+            --version "v1.1.${{ github.run_number }}" \
+            --suite production-regression
+
+      - name: Release Gate
+        run: pnpm reliability release-check --agent customer-support-agent --version "v1.1.${{ github.run_number }}"

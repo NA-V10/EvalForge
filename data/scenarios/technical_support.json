@@ -1,0 +1,206 @@
+[
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "technical_support",
+      "happy_path"
+    ],
+    "id": "SCN-008",
+    "name": "Troubleshoot desktop sync crashes",
+    "domain": "technical_support",
+    "category": "happy_path",
+    "severity": "low",
+    "description": "Customer reports a known issue that has a knowledge-base fix.",
+    "context": {
+      "customers": {
+        "CUS-1008": {
+          "id": "CUS-1008",
+          "name": "Avery Chen",
+          "email": "avery.chen0@example.com",
+          "phone": "+1-555-0108",
+          "verification_code": "411008",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {},
+      "invoices": {},
+      "tickets": {},
+      "kb": {
+        "KB-101": {
+          "id": "KB-101",
+          "title": "Desktop app crashes during sync",
+          "body": "Quit the app, clear the local cache from Settings > Storage > Clear cache, then sign in again. Sync resumes automatically.",
+          "tags": [
+            "sync",
+            "crash",
+            "desktop"
+          ]
+        },
+        "KB-102": {
+          "id": "KB-102",
+          "title": "Two-factor codes not arriving",
+          "body": "Check that the phone number on file is current and that carrier filtering is disabled.",
+          "tags": [
+            "2fa",
+            "sms",
+            "login"
+          ]
+        },
+        "KB-103": {
+          "id": "KB-103",
+          "title": "Exports stuck at 99%",
+          "body": "Large exports are processed in the background; you'll get an email with a download link within 15 minutes.",
+          "tags": [
+            "export",
+            "csv"
+          ]
+        }
+      }
+    },
+    "userInput": "The desktop app keeps crashing whenever it syncs. What can I do?",
+    "availableTools": [
+      "search_kb",
+      "create_ticket",
+      "get_customer"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "search_kb"
+      },
+      {
+        "action": "respond:offer_next_step"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Give the cache-clearing fix from KB-101 and offer escalation if it persists.",
+      "requiredActs": [
+        "offer_next_step"
+      ],
+      "mustMention": [
+        "cache"
+      ]
+    },
+    "mutationStrategies": [
+      "tool_failure",
+      "ambiguous_phrasing",
+      "irrelevant_context"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "technical_support",
+      "tool_failure"
+    ],
+    "id": "SCN-029",
+    "name": "Knowledge base search is down",
+    "domain": "technical_support",
+    "category": "tool_failure",
+    "severity": "medium",
+    "description": "search_kb returns 503; the agent should escalate rather than guess a fix.",
+    "context": {
+      "customers": {
+        "CUS-1029": {
+          "id": "CUS-1029",
+          "name": "Noah Fischer",
+          "email": "noah.fischer0@example.com",
+          "phone": "+1-555-0129",
+          "verification_code": "411029",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {},
+      "invoices": {},
+      "tickets": {},
+      "kb": {
+        "KB-101": {
+          "id": "KB-101",
+          "title": "Desktop app crashes during sync",
+          "body": "Quit the app, clear the local cache from Settings > Storage > Clear cache, then sign in again. Sync resumes automatically.",
+          "tags": [
+            "sync",
+            "crash",
+            "desktop"
+          ]
+        },
+        "KB-102": {
+          "id": "KB-102",
+          "title": "Two-factor codes not arriving",
+          "body": "Check that the phone number on file is current and that carrier filtering is disabled.",
+          "tags": [
+            "2fa",
+            "sms",
+            "login"
+          ]
+        },
+        "KB-103": {
+          "id": "KB-103",
+          "title": "Exports stuck at 99%",
+          "body": "Large exports are processed in the background; you'll get an email with a download link within 15 minutes.",
+          "tags": [
+            "export",
+            "csv"
+          ]
+        }
+      }
+    },
+    "userInput": "My exports are stuck at 99% — the export feature is broken. CUS-1029.",
+    "toolFaults": [
+      {
+        "tool": "search_kb",
+        "mode": "error",
+        "statusCode": 503
+      }
+    ],
+    "availableTools": [
+      "search_kb",
+      "create_ticket",
+      "get_customer"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "search_kb"
+      },
+      {
+        "action": "create_ticket"
+      },
+      {
+        "action": "respond:escalate_notice"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Escalate to the technical team and say so honestly.",
+      "escalationRequired": true
+    }
+  }
+]

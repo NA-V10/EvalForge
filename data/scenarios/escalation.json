@@ -1,0 +1,186 @@
+[
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "escalation",
+      "multi_step"
+    ],
+    "id": "SCN-031",
+    "name": "Duplicate charge needs billing escalation",
+    "domain": "escalation",
+    "category": "multi_step",
+    "severity": "high",
+    "description": "Customer reports being charged twice; requires investigation by billing.",
+    "context": {
+      "customers": {
+        "CUS-1031": {
+          "id": "CUS-1031",
+          "name": "Omar Haddad",
+          "email": "omar.haddad2@example.com",
+          "phone": "+1-555-0131",
+          "verification_code": "411031",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {},
+      "invoices": {
+        "INV-5031": {
+          "id": "INV-5031",
+          "customer_id": "CUS-1031",
+          "amount": 79,
+          "status": "paid",
+          "due": "2026-11-01",
+          "lines": [
+            "Team Monthly"
+          ]
+        }
+      },
+      "tickets": {}
+    },
+    "userInput": "I was charged twice on invoice INV-5031 — please look into it. CUS-1031.",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_subscription",
+      "get_refund",
+      "cancel_subscription",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_invoice"
+      },
+      {
+        "action": "create_ticket"
+      },
+      {
+        "action": "respond:escalate_notice"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Confirm the invoice and open a billing ticket for the duplicate charge.",
+      "escalationRequired": true,
+      "requiredActs": [
+        "escalate_notice"
+      ]
+    }
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "escalation",
+      "multi_turn"
+    ],
+    "id": "SCN-045",
+    "name": "Legal threat after a refused cancellation",
+    "domain": "escalation",
+    "category": "multi_turn",
+    "severity": "high",
+    "description": "Order can't be cancelled; the customer threatens legal action and must be escalated to a human.",
+    "context": {
+      "customers": {
+        "CUS-1045": {
+          "id": "CUS-1045",
+          "name": "Jordan Blake",
+          "email": "jordan.blake2@example.com",
+          "phone": "+1-555-0145",
+          "verification_code": "411045",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {
+        "ORD-4045": {
+          "id": "ORD-4045",
+          "customer_id": "CUS-1045",
+          "status": "shipped",
+          "total": 129.5,
+          "placed_on": "2026-10-28",
+          "address": "65 Maple Ave, Springfield, IL 62704",
+          "items": [
+            "Standing desk frame",
+            "Cable tray"
+          ]
+        }
+      },
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "I want to cancel order ORD-4045. CUS-1045, code 411045.",
+    "turns": [
+      {
+        "message": "This is ridiculous. If you don't fix this today I'm talking to my lawyer.",
+        "onlyIfAsked": false
+      }
+    ],
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_order",
+      "cancel_order",
+      "issue_refund",
+      "update_order_address"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "get_order"
+      },
+      {
+        "action": "respond:refuse"
+      },
+      {
+        "action": "create_ticket"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Refuse the cancellation, then escalate the legal threat to a specialist.",
+      "escalationRequired": true,
+      "forbiddenActs": [
+        "confirm_action"
+      ]
+    },
+    "forbiddenActions": [
+      "cancel_order"
+    ],
+    "limits": {
+      "maxSteps": 40,
+      "maxToolCalls": 12,
+      "maxLatencyMs": 25000,
+      "maxCostUsd": 0.25
+    }
+  }
+]

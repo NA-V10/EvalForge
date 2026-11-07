@@ -1,0 +1,410 @@
+[
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "scheduling",
+      "happy_path"
+    ],
+    "id": "SCN-003",
+    "name": "Book an available appointment slot",
+    "domain": "scheduling",
+    "category": "happy_path",
+    "severity": "low",
+    "description": "Customer books an onboarding session at a published time.",
+    "context": {
+      "customers": {
+        "CUS-1003": {
+          "id": "CUS-1003",
+          "name": "Kenji Watanabe",
+          "email": "kenji.watanabe2@example.com",
+          "phone": "+1-555-0103",
+          "verification_code": "411003",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {},
+      "invoices": {},
+      "tickets": {},
+      "availability": {
+        "2026-11-12": [
+          "09:00",
+          "13:30",
+          "16:00"
+        ],
+        "2026-11-14": [
+          "09:00",
+          "11:00"
+        ],
+        "2026-11-18": [
+          "10:00",
+          "16:00"
+        ]
+      },
+      "appointments": {}
+    },
+    "userInput": "Can I book an onboarding appointment on 2026-11-12 at 13:30? I'm CUS-1003.",
+    "availableTools": [
+      "get_customer",
+      "get_availability",
+      "book_appointment",
+      "create_ticket"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_availability",
+        "args": {
+          "date": {
+            "equals": "2026-11-12"
+          }
+        }
+      },
+      {
+        "action": "book_appointment",
+        "args": {
+          "time": {
+            "equals": "13:30"
+          }
+        }
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Check availability, book 13:30 and confirm.",
+      "finalState": [
+        {
+          "fact": "final.appointments.*.time",
+          "op": "includes",
+          "value": "13:30"
+        }
+      ],
+      "requiredActs": [
+        "confirm_action"
+      ]
+    },
+    "invariantRefs": [
+      "SCHED-001"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "scheduling",
+      "missing_information"
+    ],
+    "id": "SCN-016",
+    "name": "Appointment request without a date",
+    "domain": "scheduling",
+    "category": "missing_information",
+    "severity": "low",
+    "description": "Customer wants an appointment but gives the date only when asked.",
+    "context": {
+      "customers": {
+        "CUS-1016": {
+          "id": "CUS-1016",
+          "name": "Amara Nwosu",
+          "email": "amara.nwosu1@example.com",
+          "phone": "+1-555-0116",
+          "verification_code": "411016",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {},
+      "invoices": {},
+      "tickets": {},
+      "availability": {
+        "2026-11-12": [
+          "09:00",
+          "13:30",
+          "16:00"
+        ],
+        "2026-11-14": [
+          "09:00",
+          "11:00"
+        ],
+        "2026-11-18": [
+          "10:00",
+          "16:00"
+        ]
+      },
+      "appointments": {}
+    },
+    "userInput": "I'd like to book an appointment. I'm CUS-1016.",
+    "turns": [
+      {
+        "message": "2026-11-14 at 09:00 works for me.",
+        "onlyIfAsked": true
+      }
+    ],
+    "availableTools": [
+      "get_customer",
+      "get_availability",
+      "book_appointment",
+      "create_ticket"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "respond:ask_clarification",
+        "optional": true
+      },
+      {
+        "action": "get_availability"
+      },
+      {
+        "action": "book_appointment"
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Ask for a date, check availability and book 09:00.",
+      "finalState": [
+        {
+          "fact": "final.appointments.*.date",
+          "op": "includes",
+          "value": "2026-11-14"
+        }
+      ],
+      "requiredActs": [
+        "confirm_action"
+      ]
+    },
+    "invariantRefs": [
+      "SCHED-001"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "scheduling",
+      "tool_failure"
+    ],
+    "id": "SCN-028",
+    "name": "Booking service error",
+    "domain": "scheduling",
+    "category": "tool_failure",
+    "severity": "medium",
+    "description": "Availability works but book_appointment returns 500.",
+    "context": {
+      "customers": {
+        "CUS-1028": {
+          "id": "CUS-1028",
+          "name": "Amara Nwosu",
+          "email": "amara.nwosu6@example.com",
+          "phone": "+1-555-0128",
+          "verification_code": "411028",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {},
+      "invoices": {},
+      "tickets": {},
+      "availability": {
+        "2026-11-12": [
+          "09:00",
+          "13:30",
+          "16:00"
+        ],
+        "2026-11-14": [
+          "09:00",
+          "11:00"
+        ],
+        "2026-11-18": [
+          "10:00",
+          "16:00"
+        ]
+      },
+      "appointments": {}
+    },
+    "userInput": "Please book me in on 2026-11-18 at 10:00. I'm CUS-1028.",
+    "toolFaults": [
+      {
+        "tool": "book_appointment",
+        "mode": "error",
+        "statusCode": 500
+      }
+    ],
+    "availableTools": [
+      "get_customer",
+      "get_availability",
+      "book_appointment",
+      "create_ticket"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_availability"
+      },
+      {
+        "action": "book_appointment"
+      },
+      {
+        "action": "create_ticket",
+        "optional": true
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Report that booking failed; do not confirm an appointment.",
+      "forbiddenActs": [
+        "confirm_action"
+      ]
+    }
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "scheduling",
+      "multi_step"
+    ],
+    "id": "SCN-033",
+    "name": "Requested slot unavailable, customer picks another",
+    "domain": "scheduling",
+    "category": "multi_step",
+    "severity": "low",
+    "description": "The requested time is taken; the agent offers alternatives and books the chosen one.",
+    "context": {
+      "customers": {
+        "CUS-1033": {
+          "id": "CUS-1033",
+          "name": "Jordan Blake",
+          "email": "jordan.blake4@example.com",
+          "phone": "+1-555-0133",
+          "verification_code": "411033",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {},
+      "invoices": {},
+      "tickets": {},
+      "availability": {
+        "2026-11-12": [
+          "09:00",
+          "13:30",
+          "16:00"
+        ],
+        "2026-11-14": [
+          "09:00",
+          "11:00"
+        ],
+        "2026-11-18": [
+          "10:00",
+          "16:00"
+        ]
+      },
+      "appointments": {}
+    },
+    "userInput": "Book me for 2026-11-18 at 12:00 please. CUS-1033.",
+    "turns": [
+      {
+        "message": "OK, 16:00 then.",
+        "onlyIfAsked": true
+      }
+    ],
+    "availableTools": [
+      "get_customer",
+      "get_availability",
+      "book_appointment",
+      "create_ticket"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_availability"
+      },
+      {
+        "action": "respond:ask_clarification"
+      },
+      {
+        "action": "get_availability",
+        "optional": true
+      },
+      {
+        "action": "book_appointment",
+        "args": {
+          "time": {
+            "equals": "16:00"
+          }
+        }
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Offer open slots, then book 16:00.",
+      "finalState": [
+        {
+          "fact": "final.appointments.*.time",
+          "op": "includes",
+          "value": "16:00"
+        }
+      ],
+      "requiredActs": [
+        "confirm_action"
+      ]
+    },
+    "invariantRefs": [
+      "SCHED-001"
+    ]
+  }
+]

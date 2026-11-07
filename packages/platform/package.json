@@ -1,0 +1,20 @@
+{
+  "name": "@rel/platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@rel/agents": "workspace:*",
+    "@rel/core": "workspace:*",
+    "@rel/database": "workspace:*",
+    "@rel/evaluation-engine": "workspace:*",
+    "@rel/llm": "workspace:*",
+    "@rel/mutation-engine": "workspace:*",
+    "@rel/scenario-engine": "workspace:*",
+    "drizzle-orm": "^0.45.4",
+    "yaml": "^2.9.1"
+  }
+}

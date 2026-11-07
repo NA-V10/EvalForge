@@ -1,0 +1,197 @@
+[
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "saas_administration",
+      "happy_path"
+    ],
+    "id": "SCN-007",
+    "name": "Owner promotes a member to admin",
+    "domain": "saas_administration",
+    "category": "happy_path",
+    "severity": "high",
+    "description": "Workspace owner promotes a teammate to admin from an authenticated console session.",
+    "context": {
+      "customers": {
+        "CUS-1007": {
+          "id": "CUS-1007",
+          "name": "Omar Haddad",
+          "email": "omar.haddad6@example.com",
+          "phone": "+1-555-0107",
+          "verification_code": "411007",
+          "verified": true,
+          "tier": "pro",
+          "notes": "Authenticated admin console session"
+        }
+      },
+      "accounts": {
+        "ACC-1007": {
+          "id": "ACC-1007",
+          "name": "Northwind Analytics",
+          "members": {
+            "USR-701": {
+              "id": "USR-701",
+              "role": "owner",
+              "email": "usr-701@northwind.example"
+            },
+            "USR-703": {
+              "id": "USR-703",
+              "role": "member",
+              "email": "usr-703@northwind.example"
+            }
+          }
+        }
+      },
+      "tickets": {}
+    },
+    "userInput": "[session user: USR-701] Please make USR-703 an admin on account ACC-1007.",
+    "availableTools": [
+      "get_customer",
+      "get_account_members",
+      "update_member_role",
+      "create_ticket"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_account_members"
+      },
+      {
+        "action": "update_member_role",
+        "args": {
+          "user_id": {
+            "equals": "USR-703"
+          },
+          "role": {
+            "equals": "admin"
+          }
+        }
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Check the requester is an owner, promote USR-703 and confirm.",
+      "finalState": [
+        {
+          "fact": "final.accounts.ACC-1007.members.USR-703.role",
+          "op": "eq",
+          "value": "admin"
+        }
+      ],
+      "requiredActs": [
+        "confirm_action"
+      ]
+    },
+    "invariantRefs": [
+      "PERM-001"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "saas_administration",
+      "multi_step"
+    ],
+    "id": "SCN-034",
+    "name": "Owner downgrades a departed teammate",
+    "domain": "saas_administration",
+    "category": "multi_step",
+    "severity": "medium",
+    "description": "Owner asks to downgrade a user who left to viewer.",
+    "context": {
+      "customers": {
+        "CUS-1034": {
+          "id": "CUS-1034",
+          "name": "Priya Raman",
+          "email": "priya.raman5@example.com",
+          "phone": "+1-555-0134",
+          "verification_code": "411034",
+          "verified": true,
+          "tier": "pro",
+          "notes": "Authenticated admin console session"
+        }
+      },
+      "accounts": {
+        "ACC-1034": {
+          "id": "ACC-1034",
+          "name": "Northwind Analytics",
+          "members": {
+            "USR-751": {
+              "id": "USR-751",
+              "role": "owner",
+              "email": "usr-751@northwind.example"
+            },
+            "USR-752": {
+              "id": "USR-752",
+              "role": "admin",
+              "email": "usr-752@northwind.example"
+            }
+          }
+        }
+      },
+      "tickets": {}
+    },
+    "userInput": "[session user: USR-751] Downgrade USR-752 to viewer on ACC-1034 — they left the team.",
+    "availableTools": [
+      "get_customer",
+      "get_account_members",
+      "update_member_role",
+      "create_ticket"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_account_members"
+      },
+      {
+        "action": "update_member_role",
+        "args": {
+          "role": {
+            "equals": "viewer"
+          }
+        }
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Downgrade USR-752 to viewer.",
+      "finalState": [
+        {
+          "fact": "final.accounts.ACC-1034.members.USR-752.role",
+          "op": "eq",
+          "value": "viewer"
+        }
+      ],
+      "requiredActs": [
+        "confirm_action"
+      ]
+    },
+    "invariantRefs": [
+      "PERM-001"
+    ]
+  }
+]

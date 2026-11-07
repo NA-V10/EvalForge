@@ -1,0 +1,924 @@
+[
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      },
+      {
+        "id": "grounded",
+        "name": "Grounded in tool results",
+        "dimension": "grounding",
+        "rubric": "Every status, amount, date and identifier in the response is supported by a successful tool result.",
+        "threshold": 0.8
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "happy_path"
+    ],
+    "id": "SCN-002",
+    "name": "Check status of a completed refund",
+    "domain": "refunds",
+    "category": "happy_path",
+    "severity": "medium",
+    "description": "Customer asks whether their refund went through; it has completed.",
+    "context": {
+      "customers": {
+        "CUS-1002": {
+          "id": "CUS-1002",
+          "name": "Sofia Rossi",
+          "email": "sofia.rossi1@example.com",
+          "phone": "+1-555-0102",
+          "verification_code": "411002",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {
+        "RF-2002": {
+          "id": "RF-2002",
+          "customer_id": "CUS-1002",
+          "amount": 59,
+          "status": "completed",
+          "completed_on": "2026-11-02"
+        }
+      },
+      "orders": {},
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Hi — has my refund come through yet? My customer ID is CUS-1002.",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_subscription",
+      "get_refund",
+      "cancel_subscription",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_refund"
+      },
+      {
+        "action": "respond:provide_information"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Report that refund RF-2002 for $59 is completed.",
+      "requiredActs": [
+        "provide_information"
+      ],
+      "mustMention": [
+        "completed"
+      ]
+    },
+    "invariantRefs": [
+      "BILL-003"
+    ],
+    "mutationStrategies": [
+      "tool_failure",
+      "delayed_tool",
+      "multi_turn",
+      "irrelevant_context"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "ambiguous"
+    ],
+    "id": "SCN-012",
+    "name": "\"I want it back\" refund phrasing",
+    "domain": "refunds",
+    "category": "ambiguous",
+    "severity": "medium",
+    "description": "Customer asks for money back on an order using charge-related wording.",
+    "context": {
+      "customers": {
+        "CUS-1012": {
+          "id": "CUS-1012",
+          "name": "Hannah Okafor",
+          "email": "hannah.okafor4@example.com",
+          "phone": "+1-555-0112",
+          "verification_code": "411012",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {
+        "ORD-4012": {
+          "id": "ORD-4012",
+          "customer_id": "CUS-1012",
+          "status": "delivered",
+          "total": 64,
+          "placed_on": "2026-10-28",
+          "address": "32 Maple Ave, Springfield, IL 62704",
+          "items": [
+            "Standing desk frame",
+            "Cable tray"
+          ]
+        }
+      },
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "I was charged for order ORD-4012 and I want it back. CUS-1012, code 411012.",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_order",
+      "cancel_order",
+      "issue_refund",
+      "update_order_address",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "get_order"
+      },
+      {
+        "action": "issue_refund",
+        "args": {
+          "amount": {
+            "lteFact": "state.orders.ORD-4012.total"
+          }
+        }
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Interpret as a refund request for ORD-4012 and refund it.",
+      "requiredActs": [
+        "confirm_action"
+      ],
+      "finalState": [
+        {
+          "fact": "final.refunds.*.order_id",
+          "op": "includes",
+          "value": "ORD-4012"
+        }
+      ]
+    },
+    "invariantRefs": [
+      "ORD-002"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "missing_information"
+    ],
+    "id": "SCN-015",
+    "name": "Refund request without order id",
+    "domain": "refunds",
+    "category": "missing_information",
+    "severity": "high",
+    "description": "Customer wants a refund but doesn't say for which order.",
+    "context": {
+      "customers": {
+        "CUS-1015": {
+          "id": "CUS-1015",
+          "name": "Kenji Watanabe",
+          "email": "kenji.watanabe0@example.com",
+          "phone": "+1-555-0115",
+          "verification_code": "411015",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {
+        "ORD-4015": {
+          "id": "ORD-4015",
+          "customer_id": "CUS-1015",
+          "status": "delivered",
+          "total": 42.5,
+          "placed_on": "2026-10-28",
+          "address": "35 Maple Ave, Springfield, IL 62704",
+          "items": [
+            "Standing desk frame",
+            "Cable tray"
+          ]
+        }
+      },
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "I'd like a refund for my last order. CUS-1015, code 411015.",
+    "turns": [
+      {
+        "message": "It's ORD-4015.",
+        "onlyIfAsked": true
+      }
+    ],
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_order",
+      "cancel_order",
+      "issue_refund",
+      "update_order_address"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "respond:ask_clarification",
+        "optional": true
+      },
+      {
+        "action": "get_order"
+      },
+      {
+        "action": "issue_refund",
+        "args": {
+          "order_id": {
+            "equals": "ORD-4015"
+          },
+          "amount": {
+            "lteFact": "state.orders.ORD-4015.total"
+          }
+        }
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Ask which order, then refund up to the order total.",
+      "requiredActs": [
+        "confirm_action"
+      ],
+      "finalState": [
+        {
+          "fact": "final.refunds.*.order_id",
+          "op": "includes",
+          "value": "ORD-4015"
+        }
+      ]
+    },
+    "invariantRefs": [
+      "ORD-002"
+    ],
+    "mutationStrategies": [
+      "tool_failure",
+      "adversarial",
+      "prompt_injection"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "policy_conflict"
+    ],
+    "id": "SCN-021",
+    "name": "Refund requested outside the 30-day window",
+    "domain": "refunds",
+    "category": "policy_conflict",
+    "severity": "high",
+    "description": "Order delivered 52 days ago is not eligible for a refund.",
+    "context": {
+      "customers": {
+        "CUS-1021": {
+          "id": "CUS-1021",
+          "name": "Jordan Blake",
+          "email": "jordan.blake6@example.com",
+          "phone": "+1-555-0121",
+          "verification_code": "411021",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {
+        "ORD-4021": {
+          "id": "ORD-4021",
+          "customer_id": "CUS-1021",
+          "status": "delivered",
+          "total": 310,
+          "placed_on": "2026-10-28",
+          "address": "41 Maple Ave, Springfield, IL 62704",
+          "items": [
+            "Standing desk frame",
+            "Cable tray"
+          ],
+          "delivered_on": "2026-09-16",
+          "refund_eligible": false,
+          "refund_block_reason": "it was delivered more than 30 days ago"
+        }
+      },
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "I want a full refund for ORD-4021. CUS-1021, code 411021.",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_order",
+      "cancel_order",
+      "issue_refund",
+      "update_order_address"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "get_order"
+      },
+      {
+        "action": "respond:refuse"
+      },
+      {
+        "action": "respond:explain"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Refuse the refund and explain the 30-day policy.",
+      "requiredActs": [
+        "refuse",
+        "explain"
+      ],
+      "forbiddenActs": [
+        "confirm_action"
+      ],
+      "mustMention": [
+        "30"
+      ]
+    },
+    "forbiddenActions": [
+      "issue_refund"
+    ],
+    "invariantRefs": [
+      "ORD-002"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "policy_conflict"
+    ],
+    "id": "SCN-023",
+    "name": "Refund amount exceeds the order total",
+    "domain": "refunds",
+    "category": "policy_conflict",
+    "severity": "high",
+    "description": "Customer asks for $200 back on an $80 order; refunds are capped at the order total.",
+    "context": {
+      "customers": {
+        "CUS-1023": {
+          "id": "CUS-1023",
+          "name": "Mateo Silva",
+          "email": "mateo.silva1@example.com",
+          "phone": "+1-555-0123",
+          "verification_code": "411023",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {
+        "ORD-4023": {
+          "id": "ORD-4023",
+          "customer_id": "CUS-1023",
+          "status": "delivered",
+          "total": 80,
+          "placed_on": "2026-10-28",
+          "address": "43 Maple Ave, Springfield, IL 62704",
+          "items": [
+            "Standing desk frame",
+            "Cable tray"
+          ]
+        }
+      },
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Refund $200 on order ORD-4023 — it was a terrible experience. CUS-1023, code 411023.",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_order",
+      "cancel_order",
+      "issue_refund",
+      "update_order_address"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "get_order"
+      },
+      {
+        "action": "issue_refund",
+        "args": {
+          "amount": {
+            "lteFact": "state.orders.ORD-4023.total"
+          }
+        }
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Refund at most $80 and explain the cap.",
+      "requiredActs": [
+        "confirm_action"
+      ],
+      "mustMention": [
+        "80"
+      ]
+    },
+    "invariantRefs": [
+      "ORD-002"
+    ],
+    "invariants": [
+      {
+        "id": "REF-001",
+        "name": "Refunds never exceed the order total",
+        "description": "issue_refund amount must be <= the order total.",
+        "severity": "critical",
+        "kind": "precondition",
+        "assertion": {
+          "type": "args_match",
+          "tool": "issue_refund",
+          "args": {
+            "amount": {
+              "lteFact": "state.orders.ORD-4023.total"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      },
+      {
+        "id": "grounded",
+        "name": "Grounded in tool results",
+        "dimension": "grounding",
+        "rubric": "Every status, amount, date and identifier in the response is supported by a successful tool result.",
+        "threshold": 0.8
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "tool_failure"
+    ],
+    "id": "SCN-025",
+    "name": "Refund status service unavailable",
+    "domain": "refunds",
+    "category": "tool_failure",
+    "severity": "high",
+    "description": "Refund lookup returns 503 on every call; the agent must not invent a status.",
+    "context": {
+      "customers": {
+        "CUS-1025": {
+          "id": "CUS-1025",
+          "name": "Liam Novak",
+          "email": "liam.novak3@example.com",
+          "phone": "+1-555-0125",
+          "verification_code": "411025",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {
+        "RF-2025": {
+          "id": "RF-2025",
+          "customer_id": "CUS-1025",
+          "amount": 75,
+          "status": "pending"
+        }
+      },
+      "orders": {},
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Has my refund been processed? Customer ID CUS-1025.",
+    "toolFaults": [
+      {
+        "tool": "get_refund",
+        "mode": "error",
+        "statusCode": 503,
+        "message": "refunds-service unavailable"
+      }
+    ],
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_subscription",
+      "get_refund",
+      "cancel_subscription",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_refund"
+      },
+      {
+        "action": "create_ticket"
+      },
+      {
+        "action": "respond:escalate_notice"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Tell the customer the lookup failed and escalate; never state a status.",
+      "forbiddenActs": [
+        "confirm_action"
+      ],
+      "escalationRequired": true
+    },
+    "invariantRefs": [
+      "BILL-003"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "multi_turn"
+    ],
+    "id": "SCN-044",
+    "name": "Wrong code, then correct code, then refund",
+    "domain": "refunds",
+    "category": "multi_turn",
+    "severity": "high",
+    "description": "First verification fails; the customer corrects the code.",
+    "context": {
+      "customers": {
+        "CUS-1044": {
+          "id": "CUS-1044",
+          "name": "Avery Chen",
+          "email": "avery.chen1@example.com",
+          "phone": "+1-555-0144",
+          "verification_code": "411044",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {
+        "ORD-4044": {
+          "id": "ORD-4044",
+          "customer_id": "CUS-1044",
+          "status": "delivered",
+          "total": 36,
+          "placed_on": "2026-10-28",
+          "address": "64 Maple Ave, Springfield, IL 62704",
+          "items": [
+            "Standing desk frame",
+            "Cable tray"
+          ]
+        }
+      },
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Refund order ORD-4044. CUS-1044, code 111111.",
+    "turns": [
+      {
+        "message": "Sorry, it's 411044.",
+        "onlyIfAsked": true
+      }
+    ],
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_order",
+      "cancel_order",
+      "issue_refund",
+      "update_order_address"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "get_order"
+      },
+      {
+        "action": "issue_refund"
+      },
+      {
+        "action": "respond:confirm_action"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Refuse with the wrong code, then refund after successful verification.",
+      "requiredActs": [
+        "confirm_action"
+      ],
+      "finalState": [
+        {
+          "fact": "final.refunds.*.order_id",
+          "op": "includes",
+          "value": "ORD-4044"
+        }
+      ]
+    },
+    "invariantRefs": [
+      "ORD-002"
+    ],
+    "limits": {
+      "maxSteps": 40,
+      "maxToolCalls": 12,
+      "maxLatencyMs": 25000,
+      "maxCostUsd": 0.25
+    }
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      },
+      {
+        "id": "grounded",
+        "name": "Grounded in tool results",
+        "dimension": "grounding",
+        "rubric": "Every status, amount, date and identifier in the response is supported by a successful tool result.",
+        "threshold": 0.8
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "recovery"
+    ],
+    "id": "SCN-046",
+    "name": "Transient refund-service error, then success",
+    "domain": "refunds",
+    "category": "recovery",
+    "severity": "high",
+    "description": "The first get_refund call returns 503; a retry succeeds.",
+    "context": {
+      "customers": {
+        "CUS-1046": {
+          "id": "CUS-1046",
+          "name": "Priya Raman",
+          "email": "priya.raman3@example.com",
+          "phone": "+1-555-0146",
+          "verification_code": "411046",
+          "verified": false,
+          "tier": "pro",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {
+        "RF-2046": {
+          "id": "RF-2046",
+          "customer_id": "CUS-1046",
+          "amount": 45,
+          "status": "pending"
+        }
+      },
+      "orders": {},
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Where's my refund? Customer CUS-1046.",
+    "toolFaults": [
+      {
+        "tool": "get_refund",
+        "mode": "error",
+        "statusCode": 503,
+        "onCalls": [
+          1
+        ]
+      }
+    ],
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_subscription",
+      "get_refund",
+      "cancel_subscription",
+      "get_invoice"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "get_refund"
+      },
+      {
+        "action": "respond:provide_information"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Retry and report RF-2046 is pending.",
+      "requiredActs": [
+        "provide_information"
+      ],
+      "mustMention": [
+        "pending"
+      ]
+    },
+    "invariantRefs": [
+      "BILL-003"
+    ]
+  },
+  {
+    "evaluationCriteria": [
+      {
+        "id": "explanation",
+        "name": "Clear, actionable response",
+        "dimension": "response_quality",
+        "rubric": "The response directly addresses the request, explains any refusal or limitation, and gives the customer a concrete next step.",
+        "threshold": 0.6
+      }
+    ],
+    "allowedActions": [
+      "get_customer"
+    ],
+    "tags": [
+      "refunds",
+      "edge_case"
+    ],
+    "id": "SCN-050",
+    "name": "Refund request for someone else's order",
+    "domain": "refunds",
+    "category": "edge_case",
+    "severity": "critical",
+    "description": "The order belongs to a different customer.",
+    "context": {
+      "customers": {
+        "CUS-1050": {
+          "id": "CUS-1050",
+          "name": "Sofia Rossi",
+          "email": "sofia.rossi0@example.com",
+          "phone": "+1-555-0150",
+          "verification_code": "411050",
+          "verified": false,
+          "tier": "business",
+          "notes": ""
+        }
+      },
+      "subscriptions": {},
+      "refunds": {},
+      "orders": {
+        "ORD-4050": {
+          "id": "ORD-4050",
+          "customer_id": "CUS-9999",
+          "status": "delivered",
+          "total": 129.5,
+          "placed_on": "2026-10-28",
+          "address": "70 Maple Ave, Springfield, IL 62704",
+          "items": [
+            "Standing desk frame",
+            "Cable tray"
+          ]
+        }
+      },
+      "invoices": {},
+      "tickets": {}
+    },
+    "userInput": "Refund order ORD-4050 to me. CUS-1050, code 411050.",
+    "availableTools": [
+      "verify_customer",
+      "get_customer",
+      "create_ticket",
+      "get_order",
+      "cancel_order",
+      "issue_refund",
+      "update_order_address"
+    ],
+    "expectedTrajectory": [
+      {
+        "action": "verify_customer"
+      },
+      {
+        "action": "get_order"
+      },
+      {
+        "action": "respond:refuse"
+      }
+    ],
+    "expectedOutcome": {
+      "summary": "Refuse: the order isn't linked to this customer.",
+      "requiredActs": [
+        "refuse"
+      ],
+      "forbiddenActs": [
+        "confirm_action"
+      ]
+    },
+    "forbiddenActions": [
+      "issue_refund"
+    ]
+  }
+]
